@@ -35,13 +35,15 @@ sqlmesh fetchdf "SELECT * FROM marts.dim_airports LIMIT 10"
 ### Databricks Deployment
 
 ```bash
-# Set environment variables
-export DATABRICKS_HOST=your-workspace.cloud.databricks.com
-export DATABRICKS_TOKEN=dapi_your_token
+# Load environment variables from .env file (IMPORTANT: use set -a to export)
+set -a && source .env && set +a
 
 # Deploy to Databricks
+cd sqlmesh_project
 sqlmesh --gateway databricks_dev plan dev --no-prompts --auto-apply
 ```
+
+> **Note:** See [Databricks Catalog Management](./databricks-catalog-management.md) for detailed deployment and troubleshooting information.
 
 ## Project Structure
 
@@ -92,3 +94,4 @@ Data is sourced from the National Transportation Atlas Database (NTAD).
 
 - [Data Models](./data-models.md) - Detailed model specifications
 - [Deployment Guide](./deployment.md) - Operations and deployment procedures
+- [Databricks Catalog Management](./databricks-catalog-management.md) - Catalog cleanup, naming conventions, and troubleshooting

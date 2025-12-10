@@ -500,6 +500,53 @@ sqlmesh plan dev --restate-model marts.dim_airports
 rm data/state.duckdb
 ```
 
+### Databricks Catalog Cleanup
+
+When working with Databricks, you may need to clean up stale SQLMesh objects. Use these scripts:
+
+```bash
+# Inspect current catalog state
+python scripts/inspect_databricks_catalog.py
+python scripts/inspect_databricks_catalog.py --verbose  # Show all tables/views
+
+# Preview cleanup (dry-run)
+python scripts/cleanup_databricks_catalog.py --dry-run
+
+# Execute cleanup (removes SQLMesh schemas, preserves raw data)
+python scripts/cleanup_databricks_catalog.py --execute
+
+# Delete specific schema only
+python scripts/cleanup_databricks_catalog.py --execute --schema sqlmesh_example__dev
+```
+
+**SQLMesh native cleanup commands:**
+```bash
+# List active environments
+sqlmesh --gateway databricks_dev environments
+
+# Remove virtual environment views (keeps physical tables)
+sqlmesh --gateway databricks_dev invalidate_environment dev
+
+# Clean up unused physical table snapshots
+sqlmesh --gateway databricks_dev janitor
+
+# Full reset (after cleanup script)
+rm -f data/databricks_dev_state.duckdb
+sqlmesh --gateway databricks_dev plan dev --no-prompts --auto-apply
+```
+
+**What gets created in Databricks:**
+```
+airport_inventory_dev/
+├── raw/                    # Source data (preserved during cleanup)
+├── sqlmesh__staging/       # Physical tables: staging__stg_*__<hash>
+├── sqlmesh__marts/         # Physical tables: marts__*__<hash>
+├── sqlmesh__seeds/         # Physical tables: seeds__*__<hash>
+├── staging__dev/           # Virtual views for dev environment
+├── marts__dev/             # Virtual views for dev environment
+└── seeds__dev/             # Virtual views for dev environment
+```
+
 ---
 
 ## Environment Configuration

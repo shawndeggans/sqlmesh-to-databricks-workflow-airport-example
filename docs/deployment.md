@@ -341,3 +341,98 @@ Then deploy:
 ```bash
 sqlmesh --gateway databricks_prod plan prod --no-prompts --auto-apply
 ```
+
+---
+
+## Catalog Cleanup & Maintenance
+
+### Inspecting Catalog Contents
+
+Before cleanup, always inspect what exists:
+
+```bash
+# Basic inspection
+python scripts/inspect_databricks_catalog.py
+
+# Verbose output showing all tables/views
+python scripts/inspect_databricks_catalog.py --verbose
+
+# Inspect a different catalog
+python scripts/inspect_databricks_catalog.py --catalog airport_inventory_prod
+```
+
+### Cleanup Procedures
+
+**Using the cleanup script:**
+
+```bash
+# Preview what would be deleted (recommended first step)
+python scripts/cleanup_databricks_catalog.py --dry-run
+
+# Execute cleanup (removes SQLMesh schemas, preserves raw data)
+python scripts/cleanup_databricks_catalog.py --execute
+
+# Delete a specific schema only
+python scripts/cleanup_databricks_catalog.py --execute --schema sqlmesh_example__dev
+
+# DANGEROUS: Also delete raw source data
+python scripts/cleanup_databricks_catalog.py --execute --include-raw
+```
+
+**Using SQLMesh native commands:**
+
+```bash
+# List active environments
+sqlmesh --gateway databricks_dev environments
+
+# Invalidate environment (removes virtual views, keeps physical tables)
+sqlmesh --gateway databricks_dev invalidate_environment dev
+
+# Clean up unused snapshots (old physical tables)
+sqlmesh --gateway databricks_dev janitor
+```
+
+### Full Reset Procedure
+
+To completely reset the Databricks deployment:
+
+```bash
+# 1. Run cleanup script
+python scripts/cleanup_databricks_catalog.py --execute
+
+# 2. Delete local state for Databricks gateway
+rm -f data/databricks_dev_state.duckdb
+
+# 3. Redeploy fresh
+sqlmesh --gateway databricks_dev plan dev --no-prompts --auto-apply
+```
+
+### Schema Structure Reference
+
+SQLMesh creates these schemas in Databricks:
+
+| Schema Pattern | Purpose | Safe to Delete? |
+|----------------|---------|-----------------|
+| `raw` | Source data | NO - preserves source data |
+| `sqlmesh__<layer>` | Physical table storage | Yes, with caution |
+| `<layer>__<env>` | Virtual environment views | Yes |
+| `default` | System schema | NO |
+| `information_schema` | System schema | NO |
+
+### Common Cleanup Scenarios
+
+**Scenario 1: Remove example/test data**
+```bash
+python scripts/cleanup_databricks_catalog.py --execute --schema sqlmesh_example__dev
+python scripts/cleanup_databricks_catalog.py --execute --schema sqlmesh__sqlmesh_example
+```
+
+**Scenario 2: Reset dev environment only**
+```bash
+sqlmesh --gateway databricks_dev invalidate_environment dev
+```
+
+**Scenario 3: Clean up after model rename/delete**
+```bash
+sqlmesh --gateway databricks_dev janitor
+```

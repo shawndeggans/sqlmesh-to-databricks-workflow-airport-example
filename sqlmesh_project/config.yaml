@@ -13,9 +13,9 @@ gateways:
   databricks_dev:
     connection:
       type: databricks
-      server_hostname: ${DATABRICKS_HOST}
+      server_hostname: "{{ env_var('DATABRICKS_HOST') }}"
       http_path: /sql/1.0/warehouses/5f2a600257bdb5b8
-      access_token: ${DATABRICKS_TOKEN}
+      access_token: "{{ env_var('DATABRICKS_TOKEN') }}"
       catalog: airport_inventory_dev
     # Using DuckDB for state since Databricks is not optimized for transactional workloads
     state_connection:

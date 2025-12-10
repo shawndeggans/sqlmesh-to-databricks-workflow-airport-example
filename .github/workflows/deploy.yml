@@ -1,0 +1,55 @@
+name: Deploy to Databricks
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+
+env:
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install uv
+          uv pip install --system -r requirements.txt
+
+      - name: Create data directories
+        run: mkdir -p data/raw
+
+      - name: Generate mock data for state tracking
+        run: python scripts/generate_mock_data.py
+
+      - name: Load mock data to local DuckDB (for state)
+        run: python scripts/load_raw_to_duckdb.py
+
+      - name: Deploy to Databricks Dev
+        working-directory: sqlmesh_project
+        run: |
+          echo "Deploying to Databricks Dev environment..."
+          sqlmesh --gateway databricks_dev plan prod --auto-apply
+
+      - name: Deployment Summary
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Target: Databricks Dev (airport_inventory_dev catalog)"

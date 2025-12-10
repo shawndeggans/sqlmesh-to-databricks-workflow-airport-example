@@ -1,0 +1,48 @@
+# SQLMesh Configuration for Airport Inventory Service
+# Two gateways: local (DuckDB) and databricks_dev
+
+gateways:
+  local:
+    connection:
+      type: duckdb
+      database: ../data/dev.duckdb
+    state_connection:
+      type: duckdb
+      database: ../data/state.duckdb
+
+  databricks_dev:
+    connection:
+      type: databricks
+      server_hostname: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: /sql/1.0/warehouses/5f2a600257bdb5b8
+      access_token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      catalog: airport_inventory_dev
+    # Using DuckDB for state since Databricks is not optimized for transactional workloads
+    state_connection:
+      type: duckdb
+      database: ../data/databricks_dev_state.duckdb
+
+default_gateway: local
+
+model_defaults:
+  dialect: duckdb
+  start: '2024-01-01'
+
+# CLEAN NAMING CONFIGURATION
+# Map model schemas directly to physical schemas (removes sqlmesh__ prefix)
+physical_schema_mapping:
+  staging: staging
+  marts: marts
+  seeds: seeds
+
+# Put environment suffix on table name, not schema name
+# Prevents schema proliferation (staging__dev, marts__dev, etc.)
+environment_suffix_target: table
+
+# Linting Rules
+linter:
+  enabled: true
+  rules:
+    - ambiguousorinvalidcolumn
+    - invalidselectstarexpansion
+    - noambiguousprojections

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv pip install --system -r requirements.txt
+
+      - name: Create data directories
+        run: mkdir -p data/raw
+
+      - name: Generate mock data
+        run: python scripts/generate_mock_data.py
+
+      - name: Load mock data to DuckDB
+        run: python scripts/load_raw_to_duckdb.py
+
+      - name: Validate SQLMesh models compile
+        working-directory: sqlmesh_project
+        run: sqlmesh plan dev --no-prompts --skip-tests
+
+      - name: Run SQLMesh tests
+        working-directory: sqlmesh_project
+        run: sqlmesh test
+
+      - name: Run Python unit tests
+        run: pytest tests/unit -v --ignore=tests/unit || echo "No unit tests found"

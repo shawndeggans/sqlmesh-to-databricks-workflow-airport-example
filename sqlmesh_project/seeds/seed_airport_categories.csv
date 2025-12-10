@@ -1,0 +1,7 @@
+category_code,category_name,description,min_enplanements
+A,Large Hub,Airports with 1% or more of annual US passenger enplanements,10000000
+B,Medium Hub,Airports with 0.25% to 1% of annual US passenger enplanements,2500000
+C,Small Hub,Airports with 0.05% to 0.25% of annual US passenger enplanements,500000
+D,Non-Hub,Airports with less than 0.05% but more than 10000 annual enplanements,10000
+G,General Aviation,Airports primarily serving general aviation,0
+R,Reliever,Airports designated to relieve congestion at large hubs,0

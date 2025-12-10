@@ -1,0 +1,69 @@
+test_dim_airports_classification:
+  model: marts.dim_airports
+  inputs:
+    staging.stg_aviation_facilities:
+      rows:
+        - locid: "JFK"
+          airport_name: "John F Kennedy International"
+          city: "New York"
+          state_code: "NY"
+          county: "Queens"
+          latitude: 40.6413
+          longitude: -73.7781
+          elevation_ft: 13
+          airport_category: "A"
+          service_type: "Commercial"
+          owner_type: "Public"
+          operational_status: "Active"
+          congestion_level: "High"
+          total_enplanements: 30000000
+          aircraft_operations: 450000
+          activation_date: "1948-07-01"
+        - locid: "SFO"
+          airport_name: "San Francisco International"
+          city: "San Francisco"
+          state_code: "CA"
+          county: "San Mateo"
+          latitude: 37.6213
+          longitude: -122.3790
+          elevation_ft: 13
+          airport_category: "B"
+          service_type: "Commercial"
+          owner_type: "Public"
+          operational_status: "Active"
+          congestion_level: "Medium"
+          total_enplanements: 25000000
+          aircraft_operations: 400000
+          activation_date: "1927-05-07"
+        - locid: "XYZ"
+          airport_name: "Small Regional"
+          city: "Smalltown"
+          state_code: "TX"
+          county: "Smith"
+          latitude: 32.0
+          longitude: -95.0
+          elevation_ft: 500
+          airport_category: "D"
+          service_type: "General Aviation"
+          owner_type: "Private"
+          operational_status: "Active"
+          congestion_level: null
+          total_enplanements: 0
+          aircraft_operations: 5000
+          activation_date: null
+  outputs:
+    query:
+      rows:
+        - airport_id: "JFK"
+          airport_name: "John F Kennedy International"
+          airport_classification: "Large Hub"
+          state_code: "NY"
+        - airport_id: "SFO"
+          airport_name: "San Francisco International"
+          airport_classification: "Medium Hub"
+          state_code: "CA"
+        - airport_id: "XYZ"
+          airport_name: "Small Regional"
+          airport_classification: "Non-Hub"
+          state_code: "TX"
+    partial: true

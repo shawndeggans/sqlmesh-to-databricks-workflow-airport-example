@@ -1,39 +1,34 @@
-# --- Gateway Connection ---
+# SQLMesh Configuration for Airport Inventory Service
+# Two gateways: local (DuckDB) and databricks_dev
+
 gateways:
-  duckdb:
+  local:
     connection:
-      # For more information on configuring the connection to your execution engine, visit:
-      # https://sqlmesh.readthedocs.io/en/stable/reference/configuration/#connection
-      # https://sqlmesh.readthedocs.io/en/stable/integrations/engines/duckdb/#connection-options
       type: duckdb
-      database: db.db
-      # concurrent_tasks: 1
-      # register_comments: True
-      # pre_ping: False
-      # pretty_sql: False
-      # schema_differ_overrides: 
-      # catalog_type_overrides: 
-      # catalogs: 
-      # extensions: 
-      # connector_config: 
-      # secrets: 
-      # filesystems: 
-      # token: 
+      database: ../data/dev.duckdb
+    state_connection:
+      type: duckdb
+      database: ../data/state.duckdb
 
-default_gateway: duckdb
+  databricks_dev:
+    connection:
+      type: databricks
+      server_hostname: ${DATABRICKS_HOST}
+      http_path: /sql/1.0/warehouses/5f2a600257bdb5b8
+      access_token: ${DATABRICKS_TOKEN}
+      catalog: airport_inventory_dev
+    # Using DuckDB for state since Databricks is not optimized for transactional workloads
+    state_connection:
+      type: duckdb
+      database: ../data/databricks_dev_state.duckdb
 
-# --- Model Defaults ---
-# https://sqlmesh.readthedocs.io/en/stable/reference/model_configuration/#model-defaults
+default_gateway: local
 
 model_defaults:
   dialect: duckdb
-  start: 2025-12-06 # Start date for backfill history
-  cron: '@daily'    # Run models daily at 12am UTC (can override per model)
+  start: '2024-01-01'
 
-# --- Linting Rules ---
-# Enforce standards for your team
-# https://sqlmesh.readthedocs.io/en/stable/guides/linter/
-
+# Linting Rules
 linter:
   enabled: true
   rules:
